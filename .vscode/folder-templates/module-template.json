@@ -1,0 +1,32 @@
+{
+  "name": "Module Template (con {name})",
+  "description": "Plantilla de módulo con reemplazo dinámico de {name}",
+  "structure": {
+    "{name}": {
+      "controllers": [
+        {
+          "name": "{name}.controller.ts",
+          "content": "import { Request, Response } from 'express';\nimport { {name}Service } from '../services/{name}.service';\n\nexport class {name}Controller {\n  private {name}Service: {name}Service;\n\n  constructor() {\n    this.{name}Service = new {name}Service();\n  }\n\n  async getAll(req: Request, res: Response): Promise<void> {\n    try {\n      const items = await this.{name}Service.findAll();\n      res.json(items);\n    } catch (error) {\n      res.status(500).json({ error: 'Error al obtener {name}s' });\n    }\n  }\n}\n"
+        }
+      ],
+      "services": [
+        {
+          "name": "{name}.service.ts",
+          "content": "import { prisma } from '../../config/database';\n\nexport class {name}Service {\n  async findAll() {\n    return await prisma.{name}.findMany();\n  }\n\n  async findById(id: string) {\n    return await prisma.{name}.findUnique({\n      where: { id }\n    });\n  }\n\n  async create(data: any) {\n    return await prisma.{name}.create({\n      data\n    });\n  }\n}\n"
+        }
+      ],
+      "routes": [
+        {
+          "name": "{name}.routes.ts",
+          "content": "import { Router } from 'express';\nimport { {name}Controller } from '../controllers/{name}.controller';\n\nconst router = Router();\nconst controller = new {name}Controller();\n\nrouter.get('/', controller.getAll.bind(controller));\n\nexport default router;\n"
+        }
+      ],
+      "types": [
+        {
+          "name": "{name}.types.ts",
+          "content": "export interface Create{name}DTO {\n  // Definir propiedades aquí\n}\n\nexport interface Update{name}DTO {\n  // Definir propiedades aquí\n}\n"
+        }
+      ]
+    }
+  }
+}

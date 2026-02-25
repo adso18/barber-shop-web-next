@@ -1,0 +1,42 @@
+{
+  "name": "API Module",
+  "description": "Estructura básica para un módulo de API REST",
+  "structure": {
+    "controllers": [
+      {
+        "name": "controller.ts",
+        "content": "import { Request, Response } from 'express';\n\nexport class Controller {\n  async getAll(req: Request, res: Response): Promise<void> {\n    // Implementación\n  }\n\n  async getById(req: Request, res: Response): Promise<void> {\n    // Implementación\n  }\n\n  async create(req: Request, res: Response): Promise<void> {\n    // Implementación\n  }\n\n  async update(req: Request, res: Response): Promise<void> {\n    // Implementación\n  }\n\n  async delete(req: Request, res: Response): Promise<void> {\n    // Implementación\n  }\n}\n"
+      }
+    ],
+    "services": [
+      {
+        "name": "service.ts",
+        "content": "export class Service {\n  async findAll() {\n    // Implementación\n  }\n\n  async findById(id: string) {\n    // Implementación\n  }\n\n  async create(data: any) {\n    // Implementación\n  }\n\n  async update(id: string, data: any) {\n    // Implementación\n  }\n\n  async delete(id: string) {\n    // Implementación\n  }\n}\n"
+      }
+    ],
+    "models": [
+      {
+        "name": "model.ts",
+        "content": "export interface Model {\n  id: string;\n  createdAt: Date;\n  updatedAt: Date;\n}\n"
+      }
+    ],
+    "routes": [
+      {
+        "name": "routes.ts",
+        "content": "import { Router } from 'express';\nimport { Controller } from '../controllers/controller';\n\nconst router = Router();\nconst controller = new Controller();\n\nrouter.get('/', controller.getAll);\nrouter.get('/:id', controller.getById);\nrouter.post('/', controller.create);\nrouter.put('/:id', controller.update);\nrouter.delete('/:id', controller.delete);\n\nexport default router;\n"
+      }
+    ],
+    "validators": [
+      {
+        "name": "validator.ts",
+        "content": "import { z } from 'zod';\n\nexport const createSchema = z.object({\n  // Define el schema aquí\n});\n\nexport const updateSchema = z.object({\n  // Define el schema aquí\n});\n"
+      }
+    ],
+    "tests": [
+      {
+        "name": "service.test.ts",
+        "content": "import { describe, it, expect } from 'vitest';\nimport { Service } from '../services/service';\n\ndescribe('Service', () => {\n  it('should work', () => {\n    expect(true).toBe(true);\n  });\n});\n"
+      }
+    ]
+  }
+}

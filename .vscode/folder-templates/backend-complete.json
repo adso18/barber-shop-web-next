@@ -1,0 +1,84 @@
+{
+  "name": "Backend Complete",
+  "description": "Estructura completa para proyecto backend con TypeScript, Express y Prisma",
+  "structure": {
+    "src": {
+      "config": [
+        {
+          "name": "database.ts",
+          "content": "import { PrismaClient } from '@prisma/client';\n\nexport const prisma = new PrismaClient();\n\nexport async function connectDatabase(): Promise<void> {\n  try {\n    await prisma.$connect();\n    console.log('✓ Database connected');\n  } catch (error) {\n    console.error('✗ Database connection failed:', error);\n    process.exit(1);\n  }\n}\n\nexport async function disconnectDatabase(): Promise<void> {\n  await prisma.$disconnect();\n}\n"
+        },
+        {
+          "name": "env.ts",
+          "content": "import { z } from 'zod';\n\nconst envSchema = z.object({\n  NODE_ENV: z.enum(['development', 'production', 'test']).default('development'),\n  PORT: z.string().default('3000'),\n  DATABASE_URL: z.string(),\n  JWT_SECRET: z.string(),\n});\n\nexport const env = envSchema.parse(process.env);\n"
+        }
+      ],
+      "modules": {
+        "users": {
+          "controllers": [
+            {
+              "name": "UserController.ts",
+              "content": "import { Request, Response } from 'express';\nimport { UserService } from '../services/UserService';\n\nexport class UserController {\n  private userService: UserService;\n\n  constructor() {\n    this.userService = new UserService();\n  }\n\n  async getAll(req: Request, res: Response): Promise<void> {\n    try {\n      const users = await this.userService.findAll();\n      res.json(users);\n    } catch (error) {\n      res.status(500).json({ error: 'Error al obtener usuarios' });\n    }\n  }\n\n  async getById(req: Request, res: Response): Promise<void> {\n    try {\n      const { id } = req.params;\n      const user = await this.userService.findById(id);\n      \n      if (!user) {\n        res.status(404).json({ error: 'Usuario no encontrado' });\n        return;\n      }\n      \n      res.json(user);\n    } catch (error) {\n      res.status(500).json({ error: 'Error al obtener usuario' });\n    }\n  }\n\n  async create(req: Request, res: Response): Promise<void> {\n    try {\n      const user = await this.userService.create(req.body);\n      res.status(201).json(user);\n    } catch (error) {\n      res.status(400).json({ error: 'Error al crear usuario' });\n    }\n  }\n\n  async update(req: Request, res: Response): Promise<void> {\n    try {\n      const { id } = req.params;\n      const user = await this.userService.update(id, req.body);\n      res.json(user);\n    } catch (error) {\n      res.status(400).json({ error: 'Error al actualizar usuario' });\n    }\n  }\n\n  async delete(req: Request, res: Response): Promise<void> {\n    try {\n      const { id } = req.params;\n      await this.userService.delete(id);\n      res.status(204).send();\n    } catch (error) {\n      res.status(400).json({ error: 'Error al eliminar usuario' });\n    }\n  }\n}\n"
+            }
+          ],
+          "services": [
+            {
+              "name": "UserService.ts",
+              "content": "import { prisma } from '../../config/database';\n\nexport class UserService {\n  async findAll() {\n    return await prisma.usuario.findMany();\n  }\n\n  async findById(id: string) {\n    return await prisma.usuario.findUnique({\n      where: { id }\n    });\n  }\n\n  async create(data: any) {\n    return await prisma.usuario.create({\n      data\n    });\n  }\n\n  async update(id: string, data: any) {\n    return await prisma.usuario.update({\n      where: { id },\n      data\n    });\n  }\n\n  async delete(id: string) {\n    return await prisma.usuario.delete({\n      where: { id }\n    });\n  }\n}\n"
+            }
+          ],
+          "routes": [
+            {
+              "name": "userRoutes.ts",
+              "content": "import { Router } from 'express';\nimport { UserController } from '../controllers/UserController';\n\nconst router = Router();\nconst controller = new UserController();\n\nrouter.get('/', controller.getAll.bind(controller));\nrouter.get('/:id', controller.getById.bind(controller));\nrouter.post('/', controller.create.bind(controller));\nrouter.put('/:id', controller.update.bind(controller));\nrouter.delete('/:id', controller.delete.bind(controller));\n\nexport default router;\n"
+            }
+          ],
+          "validators": [
+            {
+              "name": "userValidators.ts",
+              "content": "import { z } from 'zod';\n\nexport const createUserSchema = z.object({\n  email: z.string().email(),\n  nombre: z.string().min(2),\n  apellido: z.string().min(2),\n});\n\nexport const updateUserSchema = z.object({\n  email: z.string().email().optional(),\n  nombre: z.string().min(2).optional(),\n  apellido: z.string().min(2).optional(),\n  activo: z.boolean().optional(),\n});\n"
+            }
+          ],
+          "types": [
+            {
+              "name": "user.types.ts",
+              "content": "export interface CreateUserDTO {\n  email: string;\n  nombre: string;\n  apellido: string;\n}\n\nexport interface UpdateUserDTO {\n  email?: string;\n  nombre?: string;\n  apellido?: string;\n  activo?: boolean;\n}\n"
+            }
+          ]
+        }
+      },
+      "middlewares": [
+        {
+          "name": "errorHandler.ts",
+          "content": "import { Request, Response, NextFunction } from 'express';\n\nexport const errorHandler = (\n  err: Error,\n  req: Request,\n  res: Response,\n  next: NextFunction\n): void => {\n  console.error(err.stack);\n  res.status(500).json({\n    error: 'Internal Server Error',\n    message: process.env.NODE_ENV === 'development' ? err.message : undefined\n  });\n};\n"
+        },
+        {
+          "name": "validateRequest.ts",
+          "content": "import { Request, Response, NextFunction } from 'express';\nimport { z } from 'zod';\n\nexport const validateRequest = (schema: z.ZodSchema) => {\n  return async (req: Request, res: Response, next: NextFunction): Promise<void> => {\n    try {\n      await schema.parseAsync(req.body);\n      next();\n    } catch (error) {\n      if (error instanceof z.ZodError) {\n        res.status(400).json({\n          error: 'Validation error',\n          details: error.errors\n        });\n        return;\n      }\n      next(error);\n    }\n  };\n};\n"
+        }
+      ],
+      "utils": [
+        {
+          "name": "logger.ts",
+          "content": "export const logger = {\n  info: (message: string, ...args: any[]) => {\n    console.log(`[INFO] ${message}`, ...args);\n  },\n  error: (message: string, ...args: any[]) => {\n    console.error(`[ERROR] ${message}`, ...args);\n  },\n  warn: (message: string, ...args: any[]) => {\n    console.warn(`[WARN] ${message}`, ...args);\n  },\n  debug: (message: string, ...args: any[]) => {\n    if (process.env.NODE_ENV === 'development') {\n      console.debug(`[DEBUG] ${message}`, ...args);\n    }\n  }\n};\n"
+        }
+      ],
+      "app.ts": "import express from 'express';\nimport cors from 'cors';\nimport helmet from 'helmet';\nimport { errorHandler } from './middlewares/errorHandler';\nimport userRoutes from './modules/users/routes/userRoutes';\n\nexport const app = express();\n\n// Middlewares globales\napp.use(helmet());\napp.use(cors());\napp.use(express.json());\napp.use(express.urlencoded({ extended: true }));\n\n// Rutas\napp.use('/api/users', userRoutes);\n\n// Health check\napp.get('/health', (req, res) => {\n  res.json({ status: 'ok' });\n});\n\n// Error handler\napp.use(errorHandler);\n",
+      "server.ts": "import { app } from './app';\nimport { connectDatabase, disconnectDatabase } from './config/database';\nimport { env } from './config/env';\nimport { logger } from './utils/logger';\n\nconst PORT = env.PORT;\n\nasync function start(): Promise<void> {\n  try {\n    await connectDatabase();\n    \n    app.listen(PORT, () => {\n      logger.info(`Server running on port ${PORT}`);\n      logger.info(`Environment: ${env.NODE_ENV}`);\n    });\n  } catch (error) {\n    logger.error('Failed to start server:', error);\n    process.exit(1);\n  }\n}\n\nprocess.on('SIGTERM', async () => {\n  logger.info('SIGTERM received, shutting down gracefully');\n  await disconnectDatabase();\n  process.exit(0);\n});\n\nstart();\n"
+    },
+    "prisma": {
+      "schema.prisma": "// This is your Prisma schema file\n\ngenerator client {\n  provider = \"prisma-client-js\"\n}\n\ndatasource db {\n  provider = \"postgresql\"\n  url      = env(\"DATABASE_URL\")\n}\n\nmodel Usuario {\n  id       String   @id @default(uuid())\n  email    String   @unique\n  nombre   String\n  apellido String\n  activo   Boolean  @default(true)\n\n  // Relaciones\n\n  // Relaciones inversas\n\n  createdAt DateTime @default(now())\n  updatedAt DateTime @updatedAt\n\n  @@index([email])\n  @@map(\"usuarios\")\n}\n"
+    },
+    "tests": {
+      "unit": [
+        "user.service.test.ts"
+      ],
+      "integration": [
+        "user.routes.test.ts"
+      ]
+    },
+    ".env.example": "NODE_ENV=development\nPORT=3000\nDATABASE_URL=postgresql://user:password@localhost:5432/mydb\nJWT_SECRET=your-secret-key\n",
+    "tsconfig.json": "{\n  \"compilerOptions\": {\n    \"target\": \"ES2020\",\n    \"module\": \"commonjs\",\n    \"lib\": [\"ES2020\"],\n    \"outDir\": \"./dist\",\n    \"rootDir\": \"./src\",\n    \"strict\": true,\n    \"esModuleInterop\": true,\n    \"skipLibCheck\": true,\n    \"forceConsistentCasingInFileNames\": true,\n    \"resolveJsonModule\": true,\n    \"moduleResolution\": \"node\"\n  },\n  \"include\": [\"src/**/*\"],\n  \"exclude\": [\"node_modules\", \"dist\", \"tests\"]\n}\n",
+    "package.json": "{\n  \"name\": \"backend-project\",\n  \"version\": \"1.0.0\",\n  \"scripts\": {\n    \"dev\": \"tsx watch src/server.ts\",\n    \"build\": \"tsc\",\n    \"start\": \"node dist/server.js\",\n    \"prisma:generate\": \"prisma generate\",\n    \"prisma:migrate\": \"prisma migrate dev\",\n    \"test\": \"vitest\"\n  },\n  \"dependencies\": {\n    \"@prisma/client\": \"^5.0.0\",\n    \"express\": \"^4.18.0\",\n    \"cors\": \"^2.8.5\",\n    \"helmet\": \"^7.0.0\",\n    \"zod\": \"^3.22.0\"\n  },\n  \"devDependencies\": {\n    \"@types/express\": \"^4.17.0\",\n    \"@types/cors\": \"^2.8.0\",\n    \"@types/node\": \"^20.0.0\",\n    \"prisma\": \"^5.0.0\",\n    \"tsx\": \"^4.0.0\",\n    \"typescript\": \"^5.0.0\",\n    \"vitest\": \"^1.0.0\"\n  }\n}\n"
+  }
+}

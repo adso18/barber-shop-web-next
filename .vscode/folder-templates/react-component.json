@@ -1,0 +1,11 @@
+{
+  "name": "React Component",
+  "description": "Estructura para un componente React con TypeScript",
+  "structure": {
+    "Component.tsx": "import React from 'react';\nimport styles from './Component.module.css';\nimport { ComponentProps } from './Component.types';\n\nexport const Component: React.FC<ComponentProps> = ({ children }) => {\n  return (\n    <div className={styles.container}>\n      {children}\n    </div>\n  );\n};\n",
+    "Component.types.ts": "export interface ComponentProps {\n  children?: React.ReactNode;\n}\n",
+    "Component.module.css": ".container {\n  /* Estilos aquí */\n}\n",
+    "Component.test.tsx": "import { render, screen } from '@testing-library/react';\nimport { Component } from './Component';\n\ndescribe('Component', () => {\n  it('should render', () => {\n    render(<Component />);\n    expect(screen.getByRole('container')).toBeInTheDocument();\n  });\n});\n",
+    "index.ts": "export { Component } from './Component';\nexport type { ComponentProps } from './Component.types';\n"
+  }
+}

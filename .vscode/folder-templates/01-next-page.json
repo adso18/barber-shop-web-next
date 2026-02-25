@@ -1,0 +1,13 @@
+{
+	"name": "Next Page",
+	"description": "Estructura para una página Next.js",
+	"structure": {
+		"{name}": {
+			"_actions": {
+				"{name}-actions.ts": "\"use server\"\n\nexport async function {name}Actions() {\n    return null;\n}\n"
+			},
+			"_components": [],
+			"page.tsx": "export default function Page() {\n    return <div>{name} Page</div>;\n}\n"
+		}
+	}
+}

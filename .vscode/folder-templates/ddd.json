@@ -1,0 +1,66 @@
+{
+  "name": "DDD",
+  "description": "Estructura Domain-Driven Design",
+  "structure": {
+    "domain": {
+      "entities": [
+        {
+          "name": "index.ts",
+          "content": "export * from './User';\n"
+        }
+      ],
+      "value-objects": [
+        "index.ts"
+      ],
+      "repositories": [
+        {
+          "name": "IUserRepository.ts",
+          "content": "export interface IUserRepository {\n  // Métodos del repositorio\n}\n"
+        }
+      ],
+      "services": [
+        "index.ts"
+      ]
+    },
+    "application": {
+      "use-cases": {
+        "user": [
+          {
+            "name": "CreateUser.ts",
+            "content": "export class CreateUser {\n  async execute() {\n    // Implementación\n  }\n}\n"
+          },
+          {
+            "name": "GetUser.ts",
+            "content": "export class GetUser {\n  async execute() {\n    // Implementación\n  }\n}\n"
+          }
+        ]
+      },
+      "dtos": [
+        "index.ts"
+      ]
+    },
+    "infrastructure": {
+      "persistence": {
+        "prisma": [
+          "UserRepository.ts"
+        ]
+      },
+      "http": {
+        "controllers": [
+          "UserController.ts"
+        ],
+        "middlewares": [
+          "index.ts"
+        ]
+      }
+    },
+    "presentation": {
+      "routes": [
+        {
+          "name": "userRoutes.ts",
+          "content": "import { Router } from 'express';\n\nconst router = Router();\n\n// Definir rutas aquí\n\nexport default router;\n"
+        }
+      ]
+    }
+  }
+}
